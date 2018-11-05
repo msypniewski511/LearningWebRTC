@@ -5,7 +5,7 @@ const constraints = {
       minHeight: 480
     }
   },
-  audio: true
+  audio: false
 };
 if (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
@@ -22,9 +22,16 @@ if (
         maxHeight: 768
       }
     },
-    audio: true
+    audio: false
   };
 }
+
+const $video = document.querySelector("video");
+const $canvas = document.querySelector("canvas");
+
+let streaming = false;
+const filters = ["", "grayscale", "sepia", "invert"];
+let currentFilter = 0;
 
 // Check browser compatbility
 function hasUserMedia() {
@@ -55,13 +62,32 @@ if (hasUserMedia()) {
     // },
     constraints,
     stream => {
-      const $video = document.querySelector("video");
       $video.srcObject = stream;
+      streaming = true;
     },
     err => {
       alert("Raised an error when capturing:", err);
     }
   );
+  document.querySelector("#capture").addEventListener("click", capturToCanvas);
+  $canvas.addEventListener("click", changeFilter);
 } else {
   alert("Sorry, your browser does not support getUserMedia.");
+}
+
+function capturToCanvas() {
+  if (streaming) {
+    $canvas.width = $video.videoWidth;
+    $canvas.height = $video.videoHeight;
+    const context = $canvas.getContext("2d");
+    context.drawImage($video, 0, 0);
+
+    context.fillStyle = "white";
+    context.fillText("Hello World!", 50, 50);
+  }
+}
+function changeFilter() {
+  currentFilter++;
+  if (currentFilter > filters.length - 1) currentFilter = 0;
+  $canvas.className = filters[currentFilter];
 }
