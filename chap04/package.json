@@ -12,6 +12,8 @@
   "author": "Maciej Sypniewski",
   "license": "ISC",
   "dependencies": {
+    "fs": "0.0.1-security",
+    "https": "^1.0.0",
     "ws": "^6.1.0"
   }
 }

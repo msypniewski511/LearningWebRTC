@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Learning WebRTC - Chapter 5: Connecting Clients Together</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <div id="login-page" class="page">
+    <h2>Login As</h2>
+    <input type="text" id="username" />
+    <button id="login">Login</button>
+  </div>
+  <div id="call-page" class="page">
+    <video id="yours" autoplay></video>
+    <video id="theirs" autoplay></video>
+    <input type="text" id="their-username" />
+    <button id="call">Call</button>
+    <button id="hang-up">Hang Up</button>
+  </div>
+  <script src="js/client.js"></script>
+</body>
+
+</html>
