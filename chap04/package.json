@@ -1,0 +1,17 @@
+{
+  "name": "signaling-server",
+  "version": "1.0.0",
+  "description": "basic signaling server used by WebRTC",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "signaling-server"
+  ],
+  "author": "Maciej Sypniewski",
+  "license": "ISC",
+  "dependencies": {
+    "ws": "^6.1.0"
+  }
+}
