@@ -109,8 +109,9 @@ wss.on("connection", connection => {
       if (connection.otherName) {
         console.log("Disconnecting user from ", connection.otherName);
         conn = users[connection.otherName];
-        conn.otherName = null;
-
+	if(conn.otherName) {
+        	conn.otherName = null;
+	}
         if (conn != null) {
           sendTo(conn, {
             type: "leave"

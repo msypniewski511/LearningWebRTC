@@ -1,4 +1,4 @@
-let name, connectedUser, yourConnection, stream;
+let name, connectedUser, yourConnection, stream, dataChannel;
 const $loginPage = document.getElementById("login-page"),
   $callPage = document.getElementById("call-page"),
   $usernameInput = document.getElementById("username"),
@@ -8,6 +8,11 @@ const $loginPage = document.getElementById("login-page"),
   $hangUpButton = document.getElementById("hang-up"),
   $yourVide = document.getElementById("yours"),
   $theirsVideo = document.getElementById("theirs");
+
+// Data channel elements
+const $received = document.getElementById("received"),
+  $sendButton = document.getElementById("send"),
+  $messageInput = document.getElementById("message");
 
 $callPage.style.display = "none";
 
@@ -111,6 +116,61 @@ function setUpPeerConnection(stream) {
   yourConnection = new RTCPeerConnection(configuration);
   console.log(yourConnection);
 
+  // /////////////////////////////////////////////////////
+
+  const handleDataChannelOpen = event => {
+    console.log("dataChannel.OnOpen", event);
+    let message = "Hello";
+    let val = JSON.stringify({
+      origin: name,
+      message: message
+    });
+    sendChannel.send(val);
+  };
+
+  const handleDataChannelMessageReceived = event => {
+    console.log("Got Data Channel Message: ", event);
+    let data = JSON.parse(event.data);
+    $received.innerHTML += data.origin + ": " + data.message + "<br />";
+    $received.scrollTop = $received.scrollHeight;
+  };
+
+  const handleDataChannelError = error => {
+    console.log("dataChannel.OnError:", error);
+  };
+
+  const handleDataChannelClose = event => {
+    console.log("dataChannel.OnClose", event);
+  };
+
+  let sendChannel = yourConnection.createDataChannel("text", {});
+  sendChannel.onopen = handleDataChannelOpen;
+  sendChannel.onmessage = handleDataChannelMessageReceived;
+  sendChannel.onerror = handleDataChannelError;
+  sendChannel.onclose = handleDataChannelClose;
+
+  yourConnection.ondatachannel = event => {
+    console.log("on data channel");
+    let receiveChannel = event.channel;
+    receiveChannel.onopen = handleDataChannelOpen;
+    receiveChannel.onmessage = handleDataChannelMessageReceived;
+    receiveChannel.onerror = handleDataChannelError;
+    receiveChannel.onclose = handleDataChannelClose;
+
+    $sendButton.addEventListener("click", function(event) {
+      let message = $messageInput.value;
+
+      let val = JSON.stringify({
+        origin: name,
+        message: message
+      });
+      $received.innerHTML += name + ": " + message + "<br />";
+      $received.scrollTop = $received.scrollHeight;
+      receiveChannel.send(val);
+    });
+  };
+  // /////////////////////////////////////////////////////////////
+
   // Setup stream listening
   yourConnection.addStream(stream);
   yourConnection.onaddstream = e => {
@@ -127,7 +187,52 @@ function setUpPeerConnection(stream) {
       });
     }
   };
+
+  // openDataChannel();
 }
+
+// ////////////////////////////////
+///////////////////////////////
+////////////////////////////
+function openDataChannel() {
+  alert("W DataChannel");
+  var dataChannelOptions = null;
+  // {
+  //   reliable: true
+  // };
+  dataChannel = yourConnection.createDataChannel("myLabel", dataChannelOptions);
+
+  dataChannel.onerror = function(error) {
+    console.log("Data Channel Error:", error);
+  };
+
+  dataChannel.onmessage = event => {
+    console.log("Got Data Channel Message:", event.data);
+    $received.innerHTML += event.data + "<br />";
+    $received.scrollTop = $received.scrollHeight;
+  };
+
+  dataChannel.onopen = function() {
+    alert("DataChannel onopen " + name + " name");
+    dataChannel.send(name + " has connected.");
+  };
+
+  dataChannel.onclose = function() {
+    alert("The Data Channel is Closed");
+    console.log("The Data Channel is Closed");
+  };
+}
+
+// Bind our text input and received area
+// $sendButton.addEventListener("click", function(event) {
+//   var val = $messageInput.value;
+//   $received.innerHTML += val + "<br />";
+//   $received.scrollTop = $received.scrollHeight;
+//   dataChannel.send(val);
+// });
+//////////////////////////////////////////
+//////////////////////////////////////////
+////////////////////////////////////////
 
 // Initiating call
 // Now that we have set everything up properly, we are ready to initiate a call with a
@@ -232,3 +337,47 @@ function hasRTCPeerConnection() {
     window.mozRTCIceCandidate;
   return !!window.RTCPeerConnection;
 }
+
+// -------------------- Data channel -----------------------------------------------//
+// function openDataChanel() {
+//   alert("w gowniw");
+//   const dataChannelOptions = {
+//     optional: [{ RtpDataChannels: true }],
+//     reliable: true
+//   };
+
+//   dataChannel = yourConnection.createDataChannel("myLabel", dataChannelOptions);
+//   console.log(dataChannel);
+//   // This listener will catch any connection issues detected.
+//   dataChannel.onerror = err => {
+//     console.log("Data Channel Error: ", error);
+//   };
+
+//   // This listener will receive messages from the other user.
+//   dataChannel.onmessage = event => {
+//     alert("message");
+//     console.log("Got Data Channel Message: ", event.data);
+
+//     $received.innerHTML += "recv: " + event.data + "<br />";
+//     $received.scrollTop = $received.scrollHeight;
+//   };
+
+//   // This listener will tell us when the other user has connected.
+//   dataChannel.onopen = () => {
+//     alert("Connected");
+//     dataChannel.send(name + " has connected");
+//   };
+
+//   // This listener will tell us when the other user disconnects.
+//   dataChannel.onclose = () => {
+//     console.log("The Data Channel is Closed!");
+//   };
+// }
+
+// // bind our text input and received rea
+// $sendButton.addEventListener("click", e => {
+//   let val = $messageInput.value;
+//   $received.innerHTML += "send: " + val + "<br/>";
+//   $received.scrollTop = $received.scrollHeight;
+//   dataChannel.send(val);
+// });
