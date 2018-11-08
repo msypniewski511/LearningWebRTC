@@ -114,8 +114,35 @@ function setUpPeerConnection(stream) {
     iceServers: [{ url: "stun:stun.1.google.com:19302" }]
   };
   yourConnection = new RTCPeerConnection(configuration);
-  console.log(yourConnection);
 
+  openDataChannel();
+
+  // /////////////////////////////////////////////////////////////
+
+  // Setup stream listening
+  yourConnection.addStream(stream);
+  yourConnection.onaddstream = e => {
+    $theirsVideo.srcObject = e.stream;
+  };
+
+  // Setp ice handling
+  yourConnection.onicecandidate = e => {
+    console.log(e.candidate);
+    if (e.candidate) {
+      send({
+        type: "candidate",
+        candidate: e.candidate
+      });
+    }
+  };
+
+  // openDataChannel();
+}
+
+// ////////////////////////////////
+///////////////////////////////
+////////////////////////////
+function openDataChannel() {
   // /////////////////////////////////////////////////////
 
   const handleDataChannelOpen = event => {
@@ -169,67 +196,8 @@ function setUpPeerConnection(stream) {
       receiveChannel.send(val);
     });
   };
-  // /////////////////////////////////////////////////////////////
-
-  // Setup stream listening
-  yourConnection.addStream(stream);
-  yourConnection.onaddstream = e => {
-    $theirsVideo.srcObject = e.stream;
-  };
-
-  // Setp ice handling
-  yourConnection.onicecandidate = e => {
-    console.log(e.candidate);
-    if (e.candidate) {
-      send({
-        type: "candidate",
-        candidate: e.candidate
-      });
-    }
-  };
-
-  // openDataChannel();
 }
 
-// ////////////////////////////////
-///////////////////////////////
-////////////////////////////
-function openDataChannel() {
-  alert("W DataChannel");
-  var dataChannelOptions = null;
-  // {
-  //   reliable: true
-  // };
-  dataChannel = yourConnection.createDataChannel("myLabel", dataChannelOptions);
-
-  dataChannel.onerror = function(error) {
-    console.log("Data Channel Error:", error);
-  };
-
-  dataChannel.onmessage = event => {
-    console.log("Got Data Channel Message:", event.data);
-    $received.innerHTML += event.data + "<br />";
-    $received.scrollTop = $received.scrollHeight;
-  };
-
-  dataChannel.onopen = function() {
-    alert("DataChannel onopen " + name + " name");
-    dataChannel.send(name + " has connected.");
-  };
-
-  dataChannel.onclose = function() {
-    alert("The Data Channel is Closed");
-    console.log("The Data Channel is Closed");
-  };
-}
-
-// Bind our text input and received area
-// $sendButton.addEventListener("click", function(event) {
-//   var val = $messageInput.value;
-//   $received.innerHTML += val + "<br />";
-//   $received.scrollTop = $received.scrollHeight;
-//   dataChannel.send(val);
-// });
 //////////////////////////////////////////
 //////////////////////////////////////////
 ////////////////////////////////////////
@@ -302,7 +270,6 @@ $hangUpButton.addEventListener("click", e => {
 
   onLeave();
 });
-
 function onLeave() {
   connectedUser = null;
   $theirsVideo.srcObject = null;
